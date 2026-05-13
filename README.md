@@ -1,24 +1,28 @@
-# README
+# MovieMatch
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Movie recommendation Rails application
 
-Things you may want to cover:
+## Проєкт
 
-* Ruby version
+Це веб-додаток на Ruby on Rails для рекомендацій фільмів.
 
-* System dependencies
+## Технології
 
-* Configuration
+- Ruby on Rails
+- PostgreSQL
+- TMDB API
+- Sentry (моніторинг)
+- Winston-style logging
 
-* Database creation
+## Версія
 
-* Database initialization
+**v1.0** — Перший стабільний реліз з логуванням та моніторингом.
 
-* How to run the test suite
+---
 
-* Services (job queues, cache servers, search engines, etc.)
+## Запуск проєкту
 
-* Deployment instructions
-
-* ...
+```bash
+bundle install
+rails db:setup
+rails server
