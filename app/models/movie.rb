@@ -1,0 +1,6 @@
+class Movie < ApplicationRecord
+    has_many :watchlists
+    has_many :users, through: :watchlists
+  
+    validates :title, presence: true
+  end
