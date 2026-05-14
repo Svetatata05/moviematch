@@ -1,4 +1,9 @@
 class ApplicationController < ActionController::Base
-  # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
+  before_action :log_request_info
+
+  private
+
+  def log_request_info
+    Rails.logger.info "[REQUEST] #{request.method} #{request.fullpath} from #{request.remote_ip}"
+  end
 end
