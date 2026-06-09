@@ -1,28 +1,70 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title><%= content_for(:title) || "Moviematch" %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MovieMatch</title>
+  <%= csrf_meta_tags %>
+  <%= stylesheet_link_tag "application" %>
+</head>
+<body>
 
-    <%= yield :head %>
+<nav class="navbar">
+  <a href="<%= root_path %>" class="navbar-brand">
+    <%= image_tag "/moviematch-logo.png", alt: "MovieMatch", class: "brand-logo" %>
+    <span>MovieMatch</span>
+  </a>
+  <a href="<%= movies_path %>" class="nav-link nav-catalog-main"><%= mm_t(:catalog) %></a>
+  <div class="navbar-links">
+    <a href="<%= randomizer_path %>" class="nav-random"><%= mm_t(:random) %></a>
+    <% if logged_in? %>
+      <a href="<%= swipes_path %>" class="nav-link nav-match-link"><%= mm_t(:swipes) %></a>
+      <div class="nav-user-menu">
+        <%= link_to current_user.name[0].upcase, user_path(current_user), class: "avatar-circle", title: "Профіль #{current_user.name}" %>
+        <div class="nav-user-dropdown">
+          <%= link_to mm_t(:profile), user_path(current_user) %>
+          <% if current_user.admin? %>
+            <%= link_to "Адмін панель", admin_root_path %>
+          <% end %>
+          <%= button_to mm_t(:log_out), logout_path, method: :delete, class: "nav-logout-button" %>
+        </div>
+      </div>
+    <% else %>
+      <%= link_to mm_t(:sign_in), login_path, class: "btn btn-outline btn-sm" %>
+      <%= link_to mm_t(:sign_up), signup_path, class: "btn btn-black btn-sm" %>
+    <% end %>
+  </div>
+</nav>
 
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+<% if notice %>
+  <div class="flash flash-notice"><%= notice %></div>
+<% end %>
+<% if alert %>
+  <div class="flash flash-alert"><%= alert %></div>
+<% end %>
 
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
+<main><%= yield %></main>
 
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
-  </head>
+<footer class="footer">
+  <div class="footer-top">
+    <a href="<%= root_path %>" class="footer-brand">
+      <%= image_tag "/moviematch-logo.png", alt: "MovieMatch", class: "footer-logo" %><span>MovieMatch</span>
+    </a>
+    <div class="footer-links">
+      <a href="<%= movies_path %>"><%= english? ? "Catalog" : "Каталог" %></a>
+      <a href="<%= randomizer_path %>"><%= english? ? "Random" : "Рандом" %></a>
+      <% if logged_in? %>
+        <a href="<%= swipes_path %>"><%= mm_t(:swipes) %></a>
+        <a href="<%= my_list_path %>"><%= english? ? "Recommendations" : "Рекомендації" %></a>
+      <% else %>
+        <a href="<%= signup_path %>"><%= english? ? "Join" : "Долучитися" %></a>
+      <% end %>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 MovieMatch. <%= english? ? "Personal movie matching service." : "Персональний сервіс підбору фільмів." %></span>
+  </div>
+</footer>
 
-  <body>
-    <%= yield %>
-  </body>
+</body>
 </html>

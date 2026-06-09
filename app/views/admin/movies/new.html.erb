@@ -1,0 +1,59 @@
+<div class="auth-wrapper custom-movie-page">
+  <div class="auth-center">
+    <div class="auth-card custom-movie-card">
+      <h2>Додати фільм у загальний каталог</h2>
+      <p class="auth-sub">Цей фільм бачитимуть усі користувачі.</p>
+
+      <% if @movie.errors.any? %>
+        <div class="form-errors">
+          <% @movie.errors.full_messages.each do |message| %>
+            <p><%= message %></p>
+          <% end %>
+        </div>
+      <% end %>
+
+      <%= form_with model: [:admin, @movie], local: true, html: { multipart: true } do |f| %>
+        <div class="field-group">
+          <%= f.label :title, "Назва" %>
+          <%= f.text_field :title, class: "field", placeholder: "Назва фільму" %>
+        </div>
+        <div class="field-group">
+          <%= f.label :media_type, "Тип" %>
+          <%= f.select :media_type, [["Фільм", "movie"], ["Серіал", "tv"]], {}, class: "field custom-select-field" %>
+        </div>
+        <div class="field-group">
+          <%= f.label :genre, "Жанр" %>
+          <%= f.text_field :genre, class: "field", placeholder: "Бойовик, Драма" %>
+        </div>
+        <div class="field-group custom-movie-grid">
+          <div>
+            <%= f.label :release_year, "Рік" %>
+            <%= f.number_field :release_year, class: "field", min: 1900, max: 2035 %>
+          </div>
+          <div>
+            <%= f.label :runtime, "Тривалість, хв" %>
+            <%= f.number_field :runtime, class: "field", min: 1, max: 600 %>
+          </div>
+        </div>
+        <div class="field-group">
+          <%= f.label :rating, "Рейтинг 0-10" %>
+          <%= f.number_field :rating, class: "field", min: 0, max: 10, step: 0.1 %>
+        </div>
+        <div class="field-group">
+          <%= f.label :poster_url, "URL постера" %>
+          <%= f.url_field :poster_url, class: "field", placeholder: "https://..." %>
+          <small class="field-hint">Або завантажте постер з комп’ютера нижче.</small>
+        </div>
+        <div class="field-group">
+          <%= f.label :poster_file, "Файл постера" %>
+          <%= f.file_field :poster_file, class: "field custom-file-field", accept: "image/*" %>
+        </div>
+        <div class="field-group">
+          <%= f.label :description, "Опис" %>
+          <%= f.text_area :description, class: "field custom-textarea", rows: 5 %>
+        </div>
+        <%= f.submit "Додати в каталог", class: "btn btn-black btn-full" %>
+      <% end %>
+    </div>
+  </div>
+</div>

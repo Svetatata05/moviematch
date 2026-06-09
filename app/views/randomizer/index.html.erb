@@ -1,0 +1,34 @@
+<div class="randomizer-loading-page" data-randomizer-loading data-target-url="<%= @target_movie ? movie_path(@target_movie) : movies_path %>">
+  <section class="randomizer-loader-card">
+    <div class="loader-poster-stack" aria-hidden="true">
+      <% @movies.first(5).each_with_index do |movie, index| %>
+        <div class="loader-poster" style="--loader-index: <%= index %>;">
+          <% if movie.poster_url.present? %>
+            <img src="<%= movie.poster_url %>" alt="">
+          <% else %>
+            <span>MM</span>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <p class="eyebrow">MovieMatch random</p>
+    <h1>Підбираємо фільм</h1>
+    <p>Аналізуємо каталог, перемішуємо жанри й зараз відкриємо випадкову сторінку.</p>
+
+    <div class="loader-line" aria-hidden="true">
+      <span></span>
+    </div>
+  </section>
+</div>
+
+<script>
+  (() => {
+    const root = document.querySelector("[data-randomizer-loading]");
+    if (!root) return;
+
+    setTimeout(() => {
+      window.location.href = root.dataset.targetUrl;
+    }, 2300);
+  })();
+</script>

@@ -1,0 +1,136 @@
+<div class="profile-page">
+  <div class="profile-header profile-header-updated">
+    <div class="profile-ava">
+      <div class="ava-circle"><%= @user.name[0].upcase %></div>
+    </div>
+    <div class="profile-meta">
+      <p class="eyebrow">Особистий профіль</p>
+      <h1><%= @user.name %></h1>
+      <p><%= @user.email %></p>
+      <small>У ПРОЄКТІ З <%= @user.created_at.strftime("%m.%Y") %></small>
+    </div>
+    <div class="profile-actions">
+      <%= link_to mm_t(:add_custom_movie), new_movie_path, class: "btn btn-white" %>
+      <button class="btn btn-white share-copy" type="button" data-share-url="<%= public_url_for(shared_collection_path(current_user.share_token)) %>"><%= mm_t(:share) %></button>
+      <%= button_to "Вийти", logout_path, method: :delete, class: "btn btn-outline" %>
+    </div>
+  </div>
+
+  <div class="profile-stats profile-stats-updated">
+    <div class="stat-box">
+      <strong><%= @want_movies.count %></strong>
+      <span>ХОЧУ ПОДИВИТИСЬ</span>
+    </div>
+    <div class="stat-box">
+      <strong><%= @seen_movies.count %></strong>
+      <span>БАЧИВ/ЛА</span>
+    </div>
+    <div class="stat-box">
+      <strong><%= @disliked_movies.count %></strong>
+      <span>НЕ ПОДОБАЄТЬСЯ</span>
+    </div>
+  </div>
+
+  <section class="dashboard-section profile-preferences">
+    <div class="section-header-row">
+      <div>
+        <h2>Мої вподобання</h2>
+        <p>Жанри, які найчастіше трапляються у вашому списку</p>
+      </div>
+    </div>
+    <% if @favorite_genres.any? %>
+      <div class="genre-bars">
+        <% @favorite_genres.each do |genre, count| %>
+          <% width = ((count.to_f / [@watchlist_count, 1].max) * 100).round %>
+          <div class="genre-bar-row">
+            <div class="genre-bar-label">
+              <span><%= genre %></span>
+              <strong><%= count %></strong>
+            </div>
+            <div class="genre-bar-track">
+              <div class="genre-bar-fill" style="width: <%= width %>%"></div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="empty-msg">Додайте кілька фільмів, щоб система визначила улюблені жанри.</p>
+    <% end %>
+  </section>
+
+  <section class="profile-library">
+    <div class="profile-library-head">
+      <div>
+        <p class="eyebrow">Персональні добірки</p>
+        <h2>Твої рішення</h2>
+      </div>
+      <%= link_to "Відкрити каталог", movies_path, class: "btn btn-outline" %>
+    </div>
+
+    <div class="profile-tabs">
+      <a href="#want-to-watch">Хочу подивитись <span><%= @want_movies.count %></span></a>
+      <a href="#seen">Бачив/ла <span><%= @seen_movies.count %></span></a>
+      <a href="#disliked">Не подобається <span><%= @disliked_movies.count %></span></a>
+    </div>
+
+    <div class="profile-swipe-section" id="want-to-watch">
+      <div class="watchlist-head">
+        <h2>Хочу подивитись</h2>
+        <span class="count-badge"><%= @want_movies.count %></span>
+      </div>
+      <%= render "users/profile_movie_list", movies: @want_movies, list_status: "want", empty_text: "Тут будуть фільми, які ви хочете подивитись." %>
+    </div>
+
+    <div class="profile-swipe-section" id="seen">
+      <div class="watchlist-head">
+        <h2>Бачив/ла</h2>
+        <span class="count-badge"><%= @seen_movies.count %></span>
+      </div>
+      <%= render "users/profile_movie_list", movies: @seen_movies, list_status: "seen", empty_text: "Тут з’являться фільми після кнопки “Бачив/ла”." %>
+    </div>
+
+    <div class="profile-swipe-section" id="disliked">
+      <div class="watchlist-head">
+        <h2>Не подобається</h2>
+        <span class="count-badge"><%= @disliked_movies.count %></span>
+      </div>
+      <%= render "users/profile_movie_list", movies: @disliked_movies, list_status: "disliked", empty_text: "Тут будуть фільми, які вам не сподобались." %>
+    </div>
+
+    <% if @recommendations.any? %>
+      <div class="profile-swipe-section">
+        <div class="watchlist-head">
+          <h2>Рекомендовано для вас</h2>
+        </div>
+        <div class="movies-grid compact-grid">
+          <% @recommendations.each do |movie| %>
+            <%= link_to movie_path(movie), class: "movie-card" do %>
+              <div class="card-poster">
+                <% if movie.poster_url.present? %>
+                  <img src="<%= movie.poster_url %>" alt="<%= movie.title %>">
+                <% else %>
+                  <div class="card-ph">Постер</div>
+                <% end %>
+                <div class="card-badge">⭐ <%= movie.rating %></div>
+              </div>
+              <div class="card-info">
+                <p class="card-title"><%= movie.title %></p>
+                <p class="card-meta"><%= movie.genre %> • <%= movie.year %></p>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </section>
+</div>
+
+<script>
+  document.querySelectorAll(".share-copy").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(button.dataset.shareUrl);
+      button.textContent = "Скопійовано";
+      setTimeout(() => button.textContent = "Поділитися", 1800);
+    });
+  });
+</script>

@@ -1,0 +1,139 @@
+<div class="dashboard-page">
+  <section class="dashboard-hero">
+    <div>
+      <p class="eyebrow">Персональна добірка</p>
+      <h1>Мій список фільмів</h1>
+      <p>Тут зберігаються обрані фільми, жанрові вподобання та підказки для наступного перегляду</p>
+    </div>
+    <div class="hero-actions">
+      <%= link_to "Додати ще фільми", movies_path, class: "btn btn-white" %>
+      <button class="btn btn-white share-copy" type="button" data-share-url="<%= public_url_for(shared_collection_path(current_user.share_token)) %>">Поділитися підбіркою</button>
+    </div>
+  </section>
+
+  <section class="insight-grid">
+    <div class="insight-card">
+      <span>Збережено</span>
+      <strong><%= @watchlist.count %></strong>
+      <small>фільмів у списку</small>
+    </div>
+    <div class="insight-card">
+      <span>Тривалість</span>
+      <strong><%= @total_runtime %></strong>
+      <small>хвилин контенту</small>
+    </div>
+    <div class="insight-card">
+      <span>Моя середня оцінка</span>
+      <strong><%= @average_user_rating || "—" %></strong>
+      <small><%= @rated_count %> оцінено з <%= @watchlist.count %> за шкалою 1–5</small>
+    </div>
+  </section>
+
+  <section class="dashboard-section">
+    <div class="section-header-row">
+      <div>
+        <h2>Мої вподобання</h2>
+        <p>Жанри, які найчастіше трапляються у вашому списку</p>
+      </div>
+    </div>
+    <% if @favorite_genres.any? %>
+      <div class="genre-bars">
+        <% @favorite_genres.each do |genre, count| %>
+          <% width = ((count.to_f / @watchlist.count) * 100).round %>
+          <div class="genre-bar-row">
+            <div class="genre-bar-label">
+              <span><%= genre %></span>
+              <strong><%= count %></strong>
+            </div>
+            <div class="genre-bar-track">
+              <div class="genre-bar-fill" style="width: <%= width %>%"></div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="empty-msg">Додайте кілька фільмів, щоб система визначила улюблені жанри</p>
+    <% end %>
+  </section>
+
+  <section class="dashboard-section">
+    <div class="section-header-row">
+      <div>
+        <h2>Ваш список</h2>
+        <p>Фільми, які ви плануєте переглянути</p>
+      </div>
+    </div>
+
+    <% if @watchlist.any? %>
+      <div class="watchlist-list">
+        <% @watchlist.each do |item| %>
+          <% rating = @ratings_by_movie[item.movie_id] %>
+          <div class="watchlist-item">
+            <%= link_to movie_path(item.movie), class: "watchlist-poster" do %>
+              <% if item.movie.poster_url %>
+                <img src="<%= item.movie.poster_url %>" alt="<%= item.movie.title %>">
+              <% else %>
+                <div class="poster-small">🎬</div>
+              <% end %>
+            <% end %>
+            <div class="watchlist-item-info">
+              <h3><%= link_to item.movie.title, movie_path(item.movie) %></h3>
+              <p><%= item.movie.genre %> • <%= item.movie.year %> • <%= item.movie.duration_formatted %></p>
+              <span><%= rating ? "Ваша оцінка: #{rating.score}/5" : "Ви ще не оцінили" %></span>
+            </div>
+            <%= form_with model: [item.movie, Rating.new], url: movie_rating_path(item.movie), local: true, class: "mini-rating-form" do |f| %>
+              <% 1.upto(5) do |star| %>
+                <button type="submit" name="rating[score]" value="<%= star %>" class="<%= rating&.score.to_i >= star ? 'active' : '' %>" title="<%= star %>/5">★</button>
+              <% end %>
+            <% end %>
+            <%= button_to "Видалити", watchlist_path(item), method: :delete, class: "btn-remove" %>
+            <%= button_to "Бачив/ла", swipes_path, method: :post,
+                params: { movie_id: item.movie_id, movie_reaction: { status: MovieReaction::STATUSES[:seen] } },
+                class: "btn-seen" %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <p class="empty-state">Список порожній. <%= link_to "Переглянути фільми", movies_path %></p>
+    <% end %>
+  </section>
+
+  <% if @recommendations.any? %>
+    <section class="dashboard-section">
+      <div class="section-header-row">
+        <div>
+          <h2>Рекомендовано для вас</h2>
+          <p>Добірка на основі жанрів із вашого списку</p>
+        </div>
+      </div>
+      <div class="movies-grid compact-grid">
+        <% @recommendations.each do |movie| %>
+          <%= link_to movie_path(movie), class: "movie-card" do %>
+            <div class="card-poster">
+              <% if movie.poster_url %>
+                <img src="<%= movie.poster_url %>" alt="<%= movie.title %>">
+              <% else %>
+                <div class="card-ph">Постер</div>
+              <% end %>
+              <div class="card-badge">⭐ <%= movie.rating %></div>
+            </div>
+            <div class="card-info">
+              <p class="card-title"><%= movie.title %></p>
+              <p class="card-meta"><%= movie.genre %> • <%= movie.year %></p>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+</div>
+
+<script>
+  document.querySelectorAll(".share-copy").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(button.dataset.shareUrl);
+      button.textContent = "Посилання скопійовано";
+      setTimeout(() => button.textContent = "Поділитися підбіркою", 1800);
+    });
+  });
+</script>

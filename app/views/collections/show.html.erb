@@ -1,0 +1,34 @@
+<div class="dashboard-page">
+  <section class="dashboard-hero">
+    <div>
+      <p class="eyebrow">Публічна підбірка</p>
+      <h1>Список користувача <%= @user.name %></h1>
+      <p>Добірка фільмів і серіалів, якою користувач поділився через MovieMatch.</p>
+    </div>
+    <%= link_to "Перейти в каталог", movies_path, class: "btn btn-white" %>
+  </section>
+
+  <% if @watchlist.any? %>
+    <div class="watchlist-list">
+      <% @watchlist.each do |item| %>
+        <% rating = @ratings_by_movie[item.movie_id] %>
+        <div class="watchlist-item">
+          <%= link_to movie_path(item.movie), class: "watchlist-poster" do %>
+            <% if item.movie.poster_url %>
+              <img src="<%= item.movie.poster_url %>" alt="<%= item.movie.title %>">
+            <% else %>
+              <div class="poster-small">Постер</div>
+            <% end %>
+          <% end %>
+          <div class="watchlist-item-info">
+            <h3><%= link_to item.movie.title, movie_path(item.movie) %></h3>
+            <p><%= item.movie.media_label %> • <%= item.movie.genre %> • <%= item.movie.year %></p>
+            <span><%= rating ? "Оцінка автора: #{rating.score}/5" : "Автор ще не оцінив" %></span>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <p class="empty-state">У цій підбірці поки немає фільмів.</p>
+  <% end %>
+</div>

@@ -65,3 +65,7 @@ end
 
 gem "sentry-ruby", "~> 6.5"
 gem "sentry-rails", "~> 6.5"
+
+gem "bcrypt", "~> 3.1"
+
+gem "pg", "~> 1.6"

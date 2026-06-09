@@ -1,0 +1,41 @@
+<% if movies.any? %>
+  <div class="wl-list profile-movie-list">
+    <% movies.each do |movie| %>
+      <div class="wl-item profile-movie-item">
+        <div class="wl-poster">
+          <% if movie.poster_url.present? %>
+            <img src="<%= movie.poster_url %>" alt="<%= movie.title %>">
+          <% else %>
+            <div class="wl-ph">POSTER</div>
+          <% end %>
+        </div>
+        <div class="wl-info">
+          <h3><%= link_to movie.title, movie_path(movie) %></h3>
+          <p><%= [movie.media_label, movie.genre, movie.year].compact.join(" • ") %></p>
+          <% if movie.manual? %>
+            <span class="manual-badge">Додано вручну</span>
+          <% end %>
+          <% if (own_rating = current_user.ratings.find_by(movie: movie)) %>
+            <span class="wl-rating">Моя оцінка: <%= own_rating.score %>/5</span>
+          <% else %>
+            <span class="wl-rating">Ще не оцінено</span>
+          <% end %>
+        </div>
+        <div class="profile-movie-actions">
+          <% if local_assigns[:list_status] == "want" %>
+            <%= button_to "Бачив/ла", swipes_path, method: :post,
+                params: { movie_id: movie.id, movie_reaction: { status: MovieReaction::STATUSES[:seen] } },
+                class: "btn-seen" %>
+          <% end %>
+          <% if (reaction_item = current_user.movie_reactions.find_by(movie: movie)) %>
+            <%= button_to "Видалити", movie_reaction_path(reaction_item), method: :delete, class: "btn-remove" %>
+          <% elsif (watchlist_item = current_user.watchlists.find_by(movie: movie)) %>
+            <%= button_to "Видалити", watchlist_path(watchlist_item), method: :delete, class: "btn-remove" %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p class="empty-msg"><%= empty_text %> <%= link_to "Почати підбір", swipes_path %></p>
+<% end %>

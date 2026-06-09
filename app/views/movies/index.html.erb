@@ -1,0 +1,128 @@
+<div class="home-hero">
+  <h1><%= mm_t(:catalog_heading) %></h1>
+  <p><%= mm_t(:catalog_subtitle) %></p>
+  <%= form_with url: search_movies_path, method: :get, local: true, class: "search-bar" do |f| %>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <%= f.search_field :query, value: @query, placeholder: mm_t(:search_placeholder), class: "search-field" %>
+    </div>
+    <%= f.submit mm_t(:search), class: "btn btn-black" %>
+  <% end %>
+  <div class="trending-row">
+    <span class="trending-label"><%= mm_t(:popular_searches) %></span>
+    <% @popular_searches.each do |movie| %>
+      <%= link_to movie.title, search_movies_path(query: movie.title), class: "trend-tag" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="catalog-wrap catalog-layout">
+  <aside class="watch-provider-panel">
+    <div class="provider-card">
+      <div class="provider-card-head">
+        <h3><%= mm_t(:where_watch) %></h3>
+        <span>UA</span>
+      </div>
+      <p>Фільтруйте каталог за наявністю трейлера або відкривайте легальні сервіси перегляду.</p>
+      <%= form_with url: movies_path, method: :get, local: true, class: "provider-filter-form" do |f| %>
+        <%= hidden_field_tag :media_type, params[:media_type] if params[:media_type].present? %>
+        <%= hidden_field_tag :sort, params[:sort] if params[:sort].present? %>
+        <% @selected_genres.each do |genre| %>
+          <%= hidden_field_tag "genres[]", genre %>
+        <% end %>
+        <label class="provider-check">
+          <%= radio_button_tag :provider, "", params[:provider].blank?, onchange: "this.form.submit()" %>
+          <span><%= mm_t(:all_items) %></span>
+        </label>
+        <label class="provider-check">
+          <%= radio_button_tag :provider, "trailer", params[:provider] == "trailer", onchange: "this.form.submit()" %>
+          <span><%= mm_t(:has_trailer) %></span>
+        </label>
+        <label class="provider-check">
+          <%= radio_button_tag :provider, "streaming", params[:provider] == "streaming", onchange: "this.form.submit()" %>
+          <span><%= mm_t(:has_tmdb) %></span>
+        </label>
+      <% end %>
+      <div class="provider-grid">
+        <a href="https://www.justwatch.com/ua" target="_blank" rel="noopener" class="provider-tile justwatch">JustWatch</a>
+        <a href="https://www.netflix.com/ua/" target="_blank" rel="noopener" class="provider-tile netflix">Netflix</a>
+        <a href="https://tv.apple.com/ua" target="_blank" rel="noopener" class="provider-tile apple">Apple TV</a>
+        <a href="https://play.google.com/store/movies" target="_blank" rel="noopener" class="provider-tile google">Google TV</a>
+        <a href="https://www.primevideo.com/" target="_blank" rel="noopener" class="provider-tile prime">Prime</a>
+        <a href="https://megogo.net/ua" target="_blank" rel="noopener" class="provider-tile megogo">MEGOGO</a>
+      </div>
+    </div>
+  </aside>
+
+  <section class="catalog-main">
+  <div class="catalog-top">
+    <div>
+      <h2 class="catalog-title">
+        <% if @query.present? %>
+          Результати для "<%= @query %>"
+        <% else %>
+          Каталог фільмів
+        <% end %>
+      </h2>
+      <p class="catalog-count">Знайдено <%= @movies.count %> фільмів і серіалів для перегляду</p>
+    </div>
+    <div class="catalog-controls">
+      <% filter_url = @query.present? ? search_movies_path : movies_path %>
+      <%= form_with url: filter_url, method: :get, local: true, class: "filters-form" do |f| %>
+        <%= hidden_field_tag :query, @query if @query.present? %>
+        <%= hidden_field_tag :provider, params[:provider] if params[:provider].present? %>
+        <div class="filter-top-row">
+          <div class="filter-select-wrap type-filter">
+            <%= f.select :media_type,
+                options_for_select([["Тип: усе", ""], ["Фільми", "movie"], ["Серіали", "tv"]], params[:media_type]),
+                {}, { class: "filter-sel", onchange: "this.form.submit()" } %>
+          </div>
+          <div class="filter-select-wrap sort-filter">
+            <%= f.select :sort,
+                options_for_select([["Сортування: рейтинг", ""], ["Сортування: новизна", "newest"], ["Сортування: назва A-Z", "title"]], params[:sort]),
+                {}, { class: "filter-sel", onchange: "this.form.submit()" } %>
+          </div>
+        </div>
+        <div class="genre-chip-panel">
+          <div class="genre-chip-head">
+            <span>Жанри <small>фільм має містити всі вибрані жанри</small></span>
+            <%= link_to "Усі жанри", url_for(request.query_parameters.except("genre", "genres").merge(only_path: true)), class: "genre-clear #{'active' if @selected_genres.blank?}" %>
+          </div>
+          <div class="genre-chip-list">
+            <% @genres.each do |genre| %>
+              <% active = @selected_genres.include?(genre) %>
+              <label class="genre-chip <%= 'active' if active %>">
+                <%= check_box_tag "genres[]", genre, active, onchange: "this.form.submit()" %>
+                <span><%= genre %></span>
+              </label>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+      <div class="view-toggle">
+        <button class="view-btn active">⊞</button>
+        <button class="view-btn">≡</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="movies-grid">
+    <% @movies.each do |movie| %>
+      <%= link_to movie_path(movie), class: "movie-card" do %>
+        <div class="card-poster">
+          <% if movie.poster_url %>
+            <img src="<%= movie.poster_url %>" alt="<%= movie.title %>">
+          <% else %>
+            <div class="card-ph">Постер</div>
+          <% end %>
+          <div class="card-badge">⭐ <%= movie.rating %></div>
+        </div>
+          <div class="card-info">
+            <p class="card-title"><%= movie.title %></p>
+          <p class="card-meta"><%= movie.media_label %> • <%= movie.genre %> • <%= movie.year %></p>
+        </div>
+      <% end %>
+    <% end %>
+  </div>
+  </section>
+</div>

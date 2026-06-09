@@ -1,21 +1,38 @@
 # config/routes.rb
 Rails.application.routes.draw do
-  resources :movies do
+  root "pages#welcome"
+
+  get  "login",  to: "sessions#new"
+  post "login",  to: "sessions#create"
+  delete "logout", to: "sessions#destroy"
+
+  get  "signup", to: "users#new"
+  post "signup", to: "users#create"
+
+  resources :users, only: [:show]
+
+  resources :movies, only: [:index, :show, :new, :create] do
+    resources :comments, only: [:create, :destroy]
+    resource :rating, only: [:create]
+
     collection do
       get :search
       get :popular
     end
   end
 
-  resources :users
-  resources :sessions, only: [:new, :create, :destroy]
+  resources :watchlists, only: [:index, :create, :destroy]
+  resources :movie_reactions, only: [:destroy]
+  resources :swipes, only: [:index, :create]
+  get "randomizer", to: "randomizer#index"
+  get "collections/:token", to: "collections#show", as: :shared_collection
 
-  get 'signup', to: 'users#new'
-  get 'login',  to: 'sessions#new'
-  delete 'logout', to: 'sessions#destroy'
+  namespace :admin do
+    root "dashboard#index"
+    resources :movies, only: [:new, :create, :destroy]
+  end
 
-  # Для тестування Sentry
-  get '/test_sentry', to: 'application#test_sentry'
-
-  root "movies#index"
+  get "catalog", to: "movies#index"
+  get "my_list", to: "users#show"
+  get "match", to: "swipes#index"
 end

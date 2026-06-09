@@ -1,0 +1,169 @@
+<div class="swipe-page">
+  <section class="swipe-hero">
+    <div>
+      <p class="eyebrow">Підбір фільмів</p>
+      <h1>Обери, що дивитися далі</h1>
+      <p>Тягни картку вправо, щоб додати у “Хочу подивитись”, або вліво, якщо фільм не підходить. Кнопка знизу позначає, що ти вже бачив/ла цей фільм або серіал.</p>
+    </div>
+    <%= link_to "Профіль", user_path(current_user), class: "btn btn-outline" %>
+  </section>
+
+  <% if @movies.any? %>
+    <section class="swipe-stage" data-swipe-stage>
+      <div class="swipe-stack" data-swipe-stack>
+        <% @movies.each_with_index do |movie, index| %>
+          <article class="swipe-card" data-swipe-card data-movie-id="<%= movie.id %>" style="--stack-index: <%= index %>;">
+            <div class="swipe-poster">
+              <% if movie.poster_url.present? %>
+                <img src="<%= movie.poster_url %>" alt="<%= movie.title %>">
+              <% else %>
+                <div class="swipe-placeholder">MovieMatch</div>
+              <% end %>
+              <span class="swipe-label swipe-like">Хочу</span>
+              <span class="swipe-label swipe-nope">Ні</span>
+            </div>
+            <div class="swipe-card-body">
+              <div>
+                <span class="swipe-media-type"><%= movie.media_label %></span>
+                <h2><%= movie.title %></h2>
+                <p><%= [movie.genre, movie.year, movie.duration_formatted].compact.join(" • ") %></p>
+              </div>
+              <span class="swipe-score"><%= movie.rating_percent %>%</span>
+            </div>
+            <% if movie.description.present? %>
+              <p class="swipe-description"><%= truncate(movie.description, length: 150) %></p>
+            <% end %>
+          </article>
+        <% end %>
+      </div>
+
+      <div class="swipe-actions-wrap">
+        <div class="swipe-actions" data-swipe-actions>
+        <button type="button" class="swipe-action dislike" data-swipe-choice="disliked" aria-label="Не подобається">×</button>
+        <button type="button" class="swipe-action seen" data-swipe-choice="seen">Бачив/ла</button>
+        <button type="button" class="swipe-action want" data-swipe-choice="want_to_watch" aria-label="Хочу подивитись">❤</button>
+        </div>
+      </div>
+
+      <p class="swipe-hint">Можна тягнути картку пальцем вліво або вправо.</p>
+    </section>
+
+    <div class="swipe-fallback">
+      <% @movies.each do |movie| %>
+        <%= form_with url: swipes_path, method: :post do |form| %>
+          <%= hidden_field_tag :movie_id, movie.id %>
+          <%= hidden_field_tag "movie_reaction[status]", "want_to_watch" %>
+          <%= form.submit "Додати #{movie.title} в хочу подивитись", class: "btn btn-black" %>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <section class="swipe-empty">
+      <h1>Усі доступні фільми вже розібрані</h1>
+      <p>Перевір профіль або каталог, а коли каталог поповниться, тут з’являться нові картки.</p>
+      <%= link_to "Перейти в профіль", user_path(current_user), class: "btn btn-black" %>
+    </section>
+  <% end %>
+</div>
+
+<script>
+  (() => {
+    const stage = document.querySelector("[data-swipe-stage]");
+    if (!stage) return;
+
+    const token = document.querySelector("meta[name='csrf-token']")?.content;
+    const cards = Array.from(stage.querySelectorAll("[data-swipe-card]"));
+    let activeIndex = cards.length - 1;
+    let activeCard = cards[activeIndex];
+    let startX = 0;
+    let startY = 0;
+    let currentX = 0;
+    let currentY = 0;
+    let dragging = false;
+
+    const setActive = () => {
+      cards.forEach((card, index) => {
+        card.classList.toggle("is-active", index === activeIndex);
+      });
+      activeCard = cards[activeIndex];
+    };
+
+    const submitReaction = async (movieId, status) => {
+      await fetch("<%= swipes_path(format: :json) %>", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+          "X-CSRF-Token": token
+        },
+        body: JSON.stringify({ movie_id: movieId, movie_reaction: { status } })
+      });
+    };
+
+    const finishCard = (status) => {
+      if (!activeCard) return;
+
+      const direction = status === "disliked" ? -1 : 1;
+      const movieId = activeCard.dataset.movieId;
+      activeCard.classList.add(status === "disliked" ? "fly-left" : "fly-right");
+      activeCard.style.transform = `translate(${direction * 128}vw, ${currentY - 28}px) rotate(${direction * 24}deg) scale(0.94)`;
+
+      submitReaction(movieId, status).catch(() => {});
+
+      activeIndex -= 1;
+      setTimeout(() => {
+        setActive();
+        currentX = 0;
+        currentY = 0;
+        if (!activeCard) {
+          stage.querySelector("[data-swipe-stack]").innerHTML = "<div class='swipe-done'><h2>Поки все</h2><p>Ти переглянув/ла всі доступні картки для підбору.</p></div>";
+          stage.querySelector("[data-swipe-actions]").style.display = "none";
+        }
+      }, 420);
+    };
+
+    const resetCard = () => {
+      if (!activeCard) return;
+      activeCard.style.transform = "";
+      activeCard.classList.remove("dragging", "tilt-like", "tilt-nope");
+      currentX = 0;
+      currentY = 0;
+    };
+
+    cards.forEach((card) => {
+      card.addEventListener("pointerdown", (event) => {
+        if (card !== activeCard) return;
+        dragging = true;
+        startX = event.clientX;
+        startY = event.clientY;
+        card.setPointerCapture(event.pointerId);
+        card.classList.add("dragging");
+      });
+
+      card.addEventListener("pointermove", (event) => {
+        if (!dragging || card !== activeCard) return;
+        currentX = event.clientX - startX;
+        currentY = event.clientY - startY;
+        const rotate = currentX / 18;
+        card.style.transform = `translate(${currentX}px, ${currentY}px) rotate(${rotate}deg)`;
+        card.classList.toggle("tilt-like", currentX > 52);
+        card.classList.toggle("tilt-nope", currentX < -52);
+      });
+
+      card.addEventListener("pointerup", () => {
+        if (!dragging || card !== activeCard) return;
+        dragging = false;
+        activeCard.classList.remove("dragging");
+        if (currentX > 110) finishCard("want_to_watch");
+        else if (currentX < -110) finishCard("disliked");
+        else resetCard();
+      });
+    });
+
+    stage.querySelectorAll("[data-swipe-choice]").forEach((button) => {
+      button.addEventListener("click", () => finishCard(button.dataset.swipeChoice));
+    });
+
+    setActive();
+  })();
+</script>

@@ -12,6 +12,9 @@ Rails.application.configure do
   # Show full error reports.
   config.consider_all_requests_local = true
 
+  # Allow opening the local development server from another device on the same Wi-Fi.
+  config.hosts.clear
+
   # Enable server timing.
   config.server_timing = true
 

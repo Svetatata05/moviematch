@@ -1,0 +1,29 @@
+<% if movies.any? %>
+  <div class="home-section">
+    <div class="section-header-row">
+      <div>
+        <h2><%= title %></h2>
+        <p><%= subtitle %></p>
+      </div>
+      <%= link_to "Всі фільми →", movies_path, class: "view-all" %>
+    </div>
+    <div class="movies-row-scroll">
+      <% movies.each do |movie| %>
+        <%= link_to movie_path(movie), class: "movie-card" do %>
+          <div class="card-poster">
+            <% if movie.poster_url %>
+              <img src="<%= movie.poster_url %>" alt="<%= movie.title %>">
+            <% else %>
+              <div class="card-ph">🎬</div>
+            <% end %>
+            <div class="card-badge">⭐ <%= movie.rating %></div>
+          </div>
+          <div class="card-info">
+            <p class="card-title"><%= movie.title %></p>
+            <p class="card-meta"><%= movie.genre %> • <%= movie.year %></p>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+<% end %>

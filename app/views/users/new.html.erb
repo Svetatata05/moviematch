@@ -1,0 +1,60 @@
+<div class="auth-wrapper">
+  <div class="auth-topbar">
+    <a href="<%= root_path %>" class="back-btn">← На головну</a>
+  </div>
+  <div class="auth-center">
+    <div class="auth-card">
+      <div class="auth-brand-icon">🎬</div>
+      <h2>Створити акаунт</h2>
+      <p class="auth-sub">Приєднуйтесь до MovieMatch і збирайте власні добірки.</p>
+
+      <%= form_with model: @user, url: signup_path, local: true do |f| %>
+        <% if @user.errors.any? %>
+          <div class="form-errors">
+            <% @user.errors.full_messages.each do |msg| %>
+              <p>⚠️ <%= msg %></p>
+            <% end %>
+          </div>
+        <% end %>
+
+        <div class="field-group">
+          <label>Ім'я</label>
+          <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <%= f.text_field :name, placeholder: "Ваше ім'я", class: "field" %>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Email</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉</span>
+            <%= f.email_field :email, placeholder: "name@example.com", class: "field" %>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Пароль</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <%= f.password_field :password, placeholder: "Мінімум 6 символів", class: "field" %>
+          </div>
+        </div>
+        <div class="field-group">
+          <label>Підтвердження пароля</label>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <%= f.password_field :password_confirmation, placeholder: "••••••••", class: "field" %>
+          </div>
+        </div>
+        <%= f.submit "Зареєструватися", class: "btn btn-black btn-full" %>
+      <% end %>
+
+      <p class="auth-switch">Вже маєте акаунт? <%= link_to "Увійти", login_path, class: "link-bold" %></p>
+    </div>
+  </div>
+  <footer class="auth-footer">
+    <a href="#">Допомога</a>
+    <a href="#">Приватність</a>
+    <a href="#">Умови</a>
+    <span>© 2026 MovieMatch</span>
+  </footer>
+</div>

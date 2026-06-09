@@ -1,0 +1,238 @@
+<div class="movie-detail-shell">
+  <section class="tmdb-detail-hero" style="<%= @movie.backdrop_url ? "background-image: linear-gradient(90deg, rgba(16, 17, 20, 0.92), rgba(16, 17, 20, 0.72), rgba(16, 17, 20, 0.38)), url('#{@movie.backdrop_url}')" : "" %>">
+    <div class="detail-page tmdb-detail-grid">
+      <div class="detail-left">
+        <div class="detail-poster">
+          <% if @movie.poster_url %>
+            <img src="<%= @movie.poster_url %>" alt="<%= @movie.title %>">
+          <% else %>
+            <div class="detail-ph">Постер</div>
+          <% end %>
+        </div>
+      </div>
+
+      <div class="detail-right tmdb-detail-content">
+        <nav class="breadcrumb breadcrumb-light">
+          <%= link_to "Каталог", movies_path %> ›
+          <%= link_to @movie.media_label, movies_path(media_type: @movie.media_type) %> ›
+          <%= @movie.title %>
+        </nav>
+
+        <p class="eyebrow"><%= @movie.media_label %></p>
+        <% if @movie.manual? %>
+          <p class="manual-detail-badge">Додано вручну</p>
+        <% end %>
+        <h1><%= @movie.title %> <span><%= "(#{@movie.year})" if @movie.year %></span></h1>
+
+        <div class="detail-meta detail-meta-light">
+          <% if @movie.content_rating.present? %>
+            <span class="meta-tag meta-rating"><%= @movie.content_rating %></span>
+          <% end %>
+          <span><%= @movie.release_date&.strftime("%d.%m.%Y") || "Дата невідома" %></span>
+          <span>•</span>
+          <span><%= @movie.genre.presence || "Жанр невідомий" %></span>
+          <% if @movie.duration_formatted.present? %>
+            <span>•</span>
+            <span><%= @movie.duration_formatted %></span>
+          <% end %>
+        </div>
+
+        <div class="tmdb-actions">
+          <div class="rating-ring" style="--rating-percent: <%= @movie.rating_percent %>%">
+            <strong><%= @movie.rating_percent %>%</strong>
+          </div>
+          <span class="rating-label">Оцінка<br>користувачів</span>
+
+          <% if logged_in? %>
+            <% if @in_watchlist %>
+              <% item = current_user.watchlists.find_by(movie: @movie) %>
+              <%= button_to "✓ У списку", watchlist_path(item), method: :delete, class: "round-action round-action-wide" %>
+            <% else %>
+              <%= button_to "+ До списку", watchlists_path(movie_id: @movie.id), method: :post, class: "round-action round-action-wide" %>
+            <% end %>
+          <% else %>
+            <%= link_to "+ До списку", login_path, class: "round-action round-action-wide" %>
+          <% end %>
+
+          <% if @movie.trailer_key.present? %>
+            <button class="trailer-trigger" type="button" data-trailer-url="<%= @movie.trailer_embed_url %>">▶ Відтворити трейлер</button>
+          <% else %>
+            <%= link_to "↗ Знайти трейлер", @movie.trailer_search_url, class: "trailer-trigger", target: "_blank", rel: "noopener" %>
+          <% end %>
+        </div>
+
+        <div class="user-rating-panel">
+          <div>
+            <span class="credit-label">ВАША ОЦІНКА</span>
+            <strong><%= @user_rating ? "#{@user_rating.score}/5" : "Ще не оцінено" %></strong>
+          </div>
+          <% if logged_in? %>
+            <%= form_with model: [@movie, @rating], url: movie_rating_path(@movie), local: true, class: "star-rating-form" do |f| %>
+              <% 1.upto(5) do |star| %>
+                <button type="submit" name="rating[score]" value="<%= star %>" class="<%= @user_rating&.score.to_i >= star ? 'active' : '' %>" title="<%= star %>/5">★</button>
+              <% end %>
+            <% end %>
+          <% else %>
+            <%= link_to "Увійдіть, щоб оцінити", login_path, class: "link-light" %>
+          <% end %>
+        </div>
+
+        <% if @movie.tagline.present? %>
+          <p class="movie-tagline"><%= @movie.tagline %></p>
+        <% end %>
+
+        <h3 class="section-label">Опис</h3>
+        <p class="detail-desc"><%= @movie.description.presence || "Опис буде додано після синхронізації з TMDB." %></p>
+
+        <% if @movie.director.present? %>
+          <div class="detail-credits">
+            <div class="credit-col">
+              <span class="credit-label"><%= @movie.tv? ? "СТВОРЕНО" : "РЕЖИСЕР" %></span>
+              <span class="credit-val"><%= @movie.director %></span>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </section>
+
+  <div class="detail-page detail-content-grid">
+    <main>
+      <% if @similar.any? %>
+        <section class="similar-section">
+          <div class="similar-header">
+            <h2>Схожі <%= @movie.tv? ? "серіали" : "фільми" %></h2>
+            <%= link_to "Переглянути всі →", movies_path(genre: @movie.genre, media_type: @movie.media_type), class: "view-all" %>
+          </div>
+          <div class="similar-grid">
+            <% @similar.each do |m| %>
+              <%= link_to movie_path(m), class: "similar-card" do %>
+                <div class="similar-poster">
+                  <% if m.poster_url %>
+                    <img src="<%= m.poster_url %>" alt="<%= m.title %>">
+                  <% else %>
+                    <div class="similar-ph">ПОСТЕР</div>
+                  <% end %>
+                </div>
+                <p class="similar-title"><%= m.title %></p>
+                <p class="similar-meta"><%= m.genre %> • <%= m.year %></p>
+              <% end %>
+            <% end %>
+          </div>
+        </section>
+      <% end %>
+
+      <section class="comments-section">
+        <div class="similar-header">
+          <h2>Коментарі</h2>
+          <span class="count-badge"><%= @comments.count %></span>
+        </div>
+
+        <% if logged_in? %>
+          <%= form_with model: [@movie, @comment], local: true, class: "comment-form" do |f| %>
+            <%= f.text_area :body, rows: 4, maxlength: 1000, placeholder: "Поділіться враженнями про #{@movie.title}...", class: "comment-field" %>
+            <%= f.submit "Опублікувати", class: "btn btn-black" %>
+          <% end %>
+        <% else %>
+          <p class="empty-msg"><%= link_to "Увійдіть", login_path %>, щоб залишити коментар.</p>
+        <% end %>
+
+        <div class="comment-list">
+          <% @comments.each do |comment| %>
+            <article class="comment-item">
+              <div class="avatar-circle"><%= comment.user.name[0].upcase %></div>
+              <div>
+                <div class="comment-head">
+                  <strong><%= comment.user.name %></strong>
+                  <span><%= comment.created_at.strftime("%d.%m.%Y %H:%M") %></span>
+                </div>
+                <p><%= comment.body %></p>
+                <% if logged_in? && comment.user_id == current_user.id %>
+                  <%= button_to "Видалити", movie_comment_path(@movie, comment), method: :delete, class: "comment-remove" %>
+                <% end %>
+              </div>
+            </article>
+          <% end %>
+        </div>
+      </section>
+    </main>
+
+    <aside class="movie-facts">
+      <h2>Дані TMDB</h2>
+      <dl>
+        <dt>Оригінальна назва</dt>
+        <dd><%= @movie.original_title.presence || @movie.title %></dd>
+        <dt>Статус</dt>
+        <dd><%= @movie.status.presence || "Невідомо" %></dd>
+        <dt>Мова оригіналу</dt>
+        <dd><%= @movie.original_language&.upcase || "Невідомо" %></dd>
+        <% unless @movie.tv? %>
+          <dt>Бюджет</dt>
+          <dd><%= @movie.money_formatted(@movie.budget) %></dd>
+          <dt>Дохід</dt>
+          <dd><%= @movie.money_formatted(@movie.revenue) %></dd>
+        <% end %>
+      </dl>
+      <div class="watch-links">
+        <h3>Де дивитися</h3>
+        <% if @movie.tmdb_url.present? %>
+          <%= link_to "Варіанти перегляду на TMDB", @movie.tmdb_url, target: "_blank", rel: "noopener" %>
+        <% end %>
+        <%= link_to "Пошук на JustWatch", @movie.justwatch_url, target: "_blank", rel: "noopener" %>
+      </div>
+      <button class="btn btn-black btn-full share-copy" type="button" data-share-url="<%= public_url_for(movie_path(@movie)) %>">Поділитися фільмом</button>
+      <% if @movie.tmdb_url.present? %>
+        <%= link_to "Відкрити на TMDB", @movie.tmdb_url, class: "btn btn-outline btn-full", target: "_blank", rel: "noopener" %>
+      <% end %>
+    </aside>
+  </div>
+</div>
+
+<div class="trailer-modal" id="trailerModal" aria-hidden="true">
+  <div class="trailer-backdrop" data-close-trailer></div>
+  <div class="trailer-dialog" role="dialog" aria-modal="true" aria-label="Відтворити трейлер">
+    <div class="trailer-dialog-head">
+      <h2>Відтворити трейлер</h2>
+      <button type="button" class="trailer-close" data-close-trailer>×</button>
+    </div>
+    <iframe id="trailerFrame" title="Movie trailer" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+  </div>
+</div>
+
+<script>
+  (() => {
+    const trigger = document.querySelector(".trailer-trigger:not(.is-disabled)");
+    const modal = document.getElementById("trailerModal");
+    const frame = document.getElementById("trailerFrame");
+    if (!trigger || !modal || !frame) return;
+
+    const close = () => {
+      modal.classList.remove("open");
+      modal.setAttribute("aria-hidden", "true");
+      frame.removeAttribute("src");
+    };
+
+    trigger.addEventListener("click", () => {
+      frame.src = trigger.dataset.trailerUrl;
+      modal.classList.add("open");
+      modal.setAttribute("aria-hidden", "false");
+    });
+
+    document.querySelectorAll("[data-close-trailer]").forEach((element) => {
+      element.addEventListener("click", close);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") close();
+    });
+  })();
+
+  document.querySelectorAll(".share-copy").forEach((button) => {
+    button.addEventListener("click", async () => {
+      await navigator.clipboard.writeText(button.dataset.shareUrl);
+      const originalText = button.textContent;
+      button.textContent = "Посилання скопійовано";
+      setTimeout(() => button.textContent = originalText, 1800);
+    });
+  });
+</script>

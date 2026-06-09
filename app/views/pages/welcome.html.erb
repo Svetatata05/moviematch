@@ -1,0 +1,70 @@
+<div class="welcome-page">
+  <div class="hero-carousel" id="heroCarousel">
+    <% @popular_movies.each_with_index do |movie, i| %>
+      <div class="hero-slide <%= i == 0 ? 'active' : '' %>" data-index="<%= i %>">
+        <% if movie.poster_url %>
+          <img src="<%= movie.poster_url %>" alt="<%= movie.title %>" class="hero-bg">
+        <% end %>
+        <div class="hero-gradient"></div>
+        <div class="hero-content">
+          <% if logged_in? %>
+            <p class="hero-tag"><%= movie.genre %></p>
+            <h2 class="hero-movie-title"><%= movie.title %></h2>
+            <p class="hero-movie-meta">⭐ <%= movie.rating %> • <%= movie.year %></p>
+            <p class="hero-movie-desc"><%= movie.description&.truncate(150) %></p>
+            <%= link_to "Детальніше →", movie_path(movie), class: "btn btn-black mt" %>
+          <% else %>
+            <h1 class="hero-title">Ласкаво просимо.</h1>
+            <p class="hero-subtitle">Мільйони фільмів і персональні рекомендації. Досліджуйте зараз.</p>
+            <%= form_tag search_movies_path, method: :get, class: "hero-search-form" do %>
+              <%= search_field_tag :query, nil, placeholder: "Пошук фільму...", class: "hero-search-input" %>
+              <%= submit_tag "Пошук", class: "btn btn-black" %>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <button class="hero-btn prev" onclick="moveSlide(-1)">&#8249;</button>
+    <button class="hero-btn next" onclick="moveSlide(1)">&#8250;</button>
+
+    <div class="hero-dots">
+      <% @popular_movies.each_with_index do |_, i| %>
+        <span class="hero-dot <%= i == 0 ? 'active' : '' %>" onclick="goToSlide(<%= i %>)"></span>
+      <% end %>
+    </div>
+  </div>
+
+  <%= render "pages/movie_row", title: "Популярні фільми за тиждень", subtitle: "Найпомітніші позиції у каталозі MovieMatch", movies: @popular_movies %>
+  <%= render "pages/movie_row", title: "Новинки", subtitle: "Останні фільми та серіали за датою виходу", movies: @new_movies %>
+
+  <% @genre_sections.each do |genre, movies| %>
+    <%= render "pages/movie_row", title: "Популярні у жанрі: #{genre}", subtitle: "Добірка найрейтинговіших фільмів цього жанру", movies: movies %>
+  <% end %>
+</div>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.hero-slide');
+  const dots = document.querySelectorAll('.hero-dot');
+  
+  if (slides.length > 0) {
+    let timer = setInterval(() => moveSlide(1), 5000);
+
+    function goToSlide(n) {
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = (n + slides.length) % slides.length;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+    }
+
+    window.goToSlide = goToSlide;
+
+    window.moveSlide = function(dir) {
+      clearInterval(timer);
+      goToSlide(current + dir);
+      timer = setInterval(() => moveSlide(1), 5000);
+    }
+  }
+</script>

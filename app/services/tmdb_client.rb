@@ -7,15 +7,20 @@ class TmdbClient
       get("/movie/popular",
           query: { api_key: ENV["TMDB_API_KEY"], language: "uk-UA" })
     end
-  
-    def self.search_movies(query)
-      get("/search/movie",
-          query: { api_key: ENV["TMDB_API_KEY"], query: query })
+
+    def self.popular_tv
+      get("/tv/popular",
+          query: { api_key: ENV["TMDB_API_KEY"], language: "uk-UA" })
     end
   
-    def self.movie_details(tmdb_id)
-      get("/movie/#{tmdb_id}",
-          query: { api_key: ENV["TMDB_API_KEY"] })
+    def self.search_movies(query)
+      get("/search/multi",
+          query: { api_key: ENV["TMDB_API_KEY"], language: "uk-UA", query: query })
+    end
+  
+    def self.movie_details(tmdb_id, media_type = "movie")
+      get("/#{media_type}/#{tmdb_id}",
+          query: { api_key: ENV["TMDB_API_KEY"], language: "uk-UA", append_to_response: "credits,videos,release_dates,content_ratings" })
     end
   end
   
@@ -24,6 +29,7 @@ class TmdbClient
     def self.movie(raw)
       {
         title:        raw["title"],
+        media_type:   "movie",
         description:  raw["overview"],
         rating:       raw["vote_average"].to_f.round(1),
         genre:        raw.dig("genres", 0, "name") || "Unknown",
@@ -71,22 +77,3 @@ class TmdbClient
     end
   end
   
-  # Контролер — чистий, без знань про TMDB
-  class MoviesController < ApplicationController
-    def initialize
-      @facade = MovieFacade.new
-      super
-    end
-  
-    def index
-      @movies = @facade.popular_movies
-    end
-  
-    def search
-      @movies = @facade.search(params[:query])
-    end
-  
-    def popular
-      @movies = @facade.popular_movies(limit: 10)
-    end
-  end

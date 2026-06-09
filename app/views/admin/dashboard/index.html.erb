@@ -1,0 +1,88 @@
+<div class="admin-page">
+  <section class="admin-hero">
+    <div>
+      <p class="eyebrow">Адмін панель</p>
+      <h1>Керування MovieMatch</h1>
+      <p>Користувачі, дії, фільми додані вручну, оцінки, коментарі та повний загальний каталог.</p>
+    </div>
+    <%= link_to "Додати фільм у каталог", new_admin_movie_path, class: "btn btn-white" %>
+  </section>
+
+  <section class="admin-stats">
+    <div><strong><%= @users.count %></strong><span>користувачів</span></div>
+    <div><strong><%= @recent_reactions.count %></strong><span>останніх дій</span></div>
+    <div><strong><%= @custom_movies.count %></strong><span>фільми додані вручну</span></div>
+    <div><strong><%= @recent_comments.count %></strong><span>коментарів</span></div>
+  </section>
+
+  <section class="admin-grid">
+    <div class="admin-card">
+      <h2>Зареєстровані користувачі</h2>
+      <% @users.each do |user| %>
+        <div class="admin-row">
+          <span><strong><%= user.name %></strong><br><%= user.email %></span>
+          <small><%= user.admin? ? "Адмін" : "Користувач" %></small>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="admin-card">
+      <h2>Останні дії користувачів</h2>
+      <% @recent_reactions.each do |reaction| %>
+        <div class="admin-row">
+          <span><strong><%= reaction.user.name %></strong><br><%= reaction.movie.title %></span>
+          <small><%= { "want_to_watch" => "Хоче подивитись", "seen" => "Бачив/ла", "disliked" => "Не подобається" }.fetch(reaction.status, reaction.status) %></small>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="admin-card">
+      <h2>Контент користувачів</h2>
+      <% @custom_movies.each do |movie| %>
+        <div class="admin-row">
+          <span><strong><%= movie.title %></strong><br><%= movie.user&.email || "без власника" %></span>
+          <div class="admin-row-actions">
+            <small>Додано вручну</small>
+            <%= button_to "Видалити", admin_movie_path(movie), method: :delete, class: "btn-remove" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="admin-card">
+      <h2>Оцінки</h2>
+      <% @recent_ratings.each do |rating| %>
+        <div class="admin-row">
+          <span><strong><%= rating.user.name %></strong><br><%= rating.movie.title %></span>
+          <small><%= rating.score %>/5</small>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="admin-card admin-wide">
+    <h2>Коментарі</h2>
+    <% @recent_comments.each do |comment| %>
+      <div class="admin-row">
+        <span><strong><%= comment.user.name %></strong> до <%= comment.movie.title %><br><%= truncate(comment.body, length: 120) %></span>
+        <small><%= comment.created_at.strftime("%d.%m.%Y") %></small>
+      </div>
+    <% end %>
+  </section>
+
+  <section class="admin-card admin-wide">
+    <div class="admin-section-head">
+      <div>
+        <h2>Загальний каталог</h2>
+        <p>У каталозі зараз <%= @catalog_movies.count %> фільмів і серіалів. Новий запис додається через кнопку праворуч.</p>
+      </div>
+      <%= link_to "Додати фільм у каталог", new_admin_movie_path, class: "btn btn-black" %>
+    </div>
+    <% @catalog_movies.each do |movie| %>
+      <div class="admin-row">
+        <span><strong><%= link_to movie.title, movie_path(movie) %></strong><br><%= [movie.media_label, movie.genre, movie.year].compact.join(" • ") %></span>
+        <%= button_to "Видалити", admin_movie_path(movie), method: :delete, class: "btn-remove" %>
+      </div>
+    <% end %>
+  </section>
+</div>

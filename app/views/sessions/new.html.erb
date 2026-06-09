@@ -1,0 +1,46 @@
+<div class="auth-wrapper">
+  <div class="auth-topbar">
+    <a href="<%= root_path %>" class="back-btn">← На головну</a>
+  </div>
+  <div class="auth-center">
+    <div class="auth-card">
+      <div class="auth-brand-icon">🎬</div>
+      <h2>Вхід у MovieMatch</h2>
+      <p class="auth-sub">Увійдіть, щоб зберігати добірки, оцінки та коментарі.</p>
+
+      <%= form_with url: login_path, local: true do |f| %>
+        <div class="field-group">
+          <label>Email</label>
+          <div class="input-wrap">
+            <span class="input-icon">✉</span>
+            <%= f.email_field :email, placeholder: "name@example.com", class: "field" %>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field-label-row">
+            <label>Пароль</label>
+            <a href="#" class="forgot-link">Забули пароль?</a>
+          </div>
+          <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <%= f.password_field :password, placeholder: "••••••••", class: "field" %>
+          </div>
+        </div>
+        <%= f.submit "Увійти", class: "btn btn-black btn-full" %>
+      <% end %>
+
+      <div class="divider"><span>АБО ПРОДОВЖИТИ ЧЕРЕЗ</span></div>
+      <div class="social-btns">
+        <button class="btn btn-social">G Google</button>
+        <button class="btn btn-social">🍎 Apple</button>
+      </div>
+      <p class="auth-switch">Ще немає акаунта? <%= link_to "Зареєструватися", signup_path, class: "link-bold" %></p>
+    </div>
+  </div>
+  <footer class="auth-footer">
+    <a href="#">Допомога</a>
+    <a href="#">Приватність</a>
+    <a href="#">Умови</a>
+    <span>© 2026 MovieMatch</span>
+  </footer>
+</div>
