@@ -301,10 +301,10 @@ GEM
       rexml (~> 3.2, >= 3.2.5)
       rubyzip (>= 1.2.2, < 4.0)
       websocket (~> 1.0)
-    sentry-rails (6.5.0)
+    sentry-rails (6.6.2)
       railties (>= 5.2.0)
-      sentry-ruby (~> 6.5.0)
-    sentry-ruby (6.5.0)
+      sentry-ruby (~> 6.6.2)
+    sentry-ruby (6.6.2)
       bigdecimal
       concurrent-ruby (~> 1.0, >= 1.0.2)
       logger
@@ -389,7 +389,7 @@ DEPENDENCIES
   rubocop-rails-omakase
   selenium-webdriver
   sentry-rails (~> 6.5)
-  sentry-ruby (~> 6.5)
+  sentry-ruby (~> 6.6)
   solid_cable
   solid_cache
   solid_queue
