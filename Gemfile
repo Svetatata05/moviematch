@@ -63,7 +63,7 @@ group :test do
   gem "selenium-webdriver"
 end
 
-gem "sentry-ruby", "~> 6.5"
+gem "sentry-ruby", "~> 6.6"
 gem "sentry-rails", "~> 6.5"
 
 gem "bcrypt", "~> 3.1"
