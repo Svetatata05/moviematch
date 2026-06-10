@@ -64,7 +64,7 @@ group :test do
 end
 
 gem "sentry-ruby", "~> 6.5"
-gem "sentry-rails", "~> 6.5"
+gem "sentry-rails", "~> 6.6"
 
 gem "bcrypt", "~> 3.1"
 
